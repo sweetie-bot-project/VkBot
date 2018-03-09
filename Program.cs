@@ -21,7 +21,7 @@ namespace VkBot {
         const string apiUrl = "https://api.vk.com/method/";
         readonly string vkToken;
 
-        HttpClient client = new HttpClient() {
+        readonly HttpClient client = new HttpClient() {
             Timeout = TimeSpan.FromMinutes(2)
         };
 
@@ -58,12 +58,12 @@ namespace VkBot {
             builder.Query = $"v={apiVersion}&access_token={vkToken}&peer_id={userId}&message={text}";
             if (attachments != null)
                 builder.Query += "&attachment=" + string.Join(',', attachments.Select(i => Uri.EscapeDataString(i)));
-            var responceRaw = await client.GetStringAsync(builder.Uri);
-            if (JObject.Parse(responceRaw)["response"] == null)
-                throw new Exception(string.Format("Invalid server response: {0}", responceRaw));
+            var responseRaw = await client.GetStringAsync(builder.Uri);
+            if (JObject.Parse(responseRaw)["response"] == null)
+                throw new Exception(string.Format("Invalid server response: {0}", responseRaw));
         }
 
-        AIConfiguration aiConfig;
+        readonly AIConfiguration aiConfig;
 
         async Task ProcessMessage(VkMessage msg) {
             aiConfig.SessionId = "vk_" + msg.UserId.ToString();
@@ -71,7 +71,7 @@ namespace VkBot {
             var response = apiAi.TextRequest(msg.Text);
             string respmsg;
             if (response.IsError)
-                respmsg = "Ошибочка ...";
+                respmsg = "Ошибочка...";
             else
                 respmsg = response.Result.Fulfillment.Speech;
             if (string.IsNullOrEmpty(respmsg))
